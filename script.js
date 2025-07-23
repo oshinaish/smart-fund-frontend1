@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isNaN(loanTenure) || loanTenure <= 0 ||
                 isNaN(investmentTenure) || investmentTenure <= 0 ||
                 isNaN(riskAppetite) || riskAppetite <= 0) {
-                displayMessage(loanAmount, 'danger');
+                displayMessage(loanAmount,monthlyBudget,loanInterestRate,loanTenure,investmentTenure,riskAppetite, 'danger');
                 return;
             }
 
