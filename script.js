@@ -167,12 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isNaN(loanTenure) || loanTenure <= 0 ||
                 isNaN(investmentTenure) || investmentTenure <= 0 ||
                 isNaN(riskAppetite) || riskAppetite <= 0) {
-                displayMessage(loanAmount, 'danger');
-                displayMessage(monthlyBudget, 'danger');
-                displayMessage(loanInterestRate, 'danger');
-                displayMessage(loanTenure, 'danger');
-                displayMessage(investmentTenure, 'danger');
-                displayMessage(riskAppetite, 'danger');
+                displayMessage('Please enter valid positive numbers for all financial inputs.','danger');
                 return;
             }
 
