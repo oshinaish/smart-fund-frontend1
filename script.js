@@ -11,11 +11,11 @@ const loanInterestRateDisplay = document.getElementById('loanInterestRateDisplay
 const loanInterestRateSlider = document.getElementById('loanInterestRateSlider');
 const loanTenureDisplay = document.getElementById('loanTenureDisplay');
 const loanTenureSlider = document.getElementById('loanTenureSlider');
-const riskAppetiteDisplay = document.getElementById('riskAppetiteDisplay'); // Corrected ID
+const riskAppetiteDisplay = document.getElementById('riskAppetiteDisplay');
 const riskAppetiteSlider = document.getElementById('riskAppetiteSlider');
-const investmentTenureDisplay = document.getElementById('investmentTenureDisplay'); // Corrected ID
+const investmentTenureDisplay = document.getElementById('investmentTenureDisplay');
 const investmentTenureSlider = document.getElementById('investmentTenureSlider');
-const optimizationPeriodDisplay = document.getElementById('optimizationPeriodDisplay'); // Corrected ID
+const optimizationPeriodDisplay = document.getElementById('optimizationPeriod'); // Corrected ID: changed from 'optimizationPeriodDisplay' to 'optimizationPeriod'
 const optimizationPeriodSlider = document.getElementById('optimizationPeriodSlider');
 const optimizationPeriodContainer = document.getElementById('optimizationPeriodContainer');
 
