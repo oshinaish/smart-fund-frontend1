@@ -2,6 +2,7 @@
 const BACKEND_API_URL = 'https://smart-fund-backend-api.onrender.com/calculate-allocation';
 
 // Global variables for DOM elements and Chart instances (initialized in DOMContentLoaded)
+// These variables are declared globally but will be assigned values inside DOMContentLoaded
 let loanAmountInput, loanAmountSlider, monthlyBudgetInput, monthlyBudgetSlider;
 let loanInterestRateDisplay, loanInterestRateSlider, loanTenureDisplay, loanTenureSlider;
 let riskAppetiteDisplay, riskAppetiteSlider, investmentTenureDisplay, investmentTenureSlider;
@@ -19,6 +20,7 @@ let currentAllocationGoal = 'netZeroInterest'; // Default goal
 // --- DOMContentLoaded ensures all HTML is loaded before script runs ---
 document.addEventListener('DOMContentLoaded', () => {
     // Get references to DOM elements
+    // All document.getElementById calls are now safely inside DOMContentLoaded
     // Inputs
     loanAmountInput = document.getElementById('loanAmount');
     loanAmountSlider = document.getElementById('loanAmountSlider');
@@ -149,13 +151,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const calculateBtn = document.getElementById('calculateBtn');
     if (calculateBtn) {
         calculateBtn.addEventListener('click', async () => {
-            const loanAmount = parseFloat(loanAmountInput.value);
-            const monthlyBudget = parseFloat(monthlyBudgetInput.value);
-            const loanInterestRate = parseFloat(loanInterestRateDisplay.value);
-            const loanTenure = parseFloat(loanTenureDisplay.value);
-            const investmentTenure = parseFloat(investmentTenureDisplay.value);
-            const riskAppetite = parseFloat(riskAppetiteDisplay.value);
-            const optimizationPeriod = parseFloat(optimizationPeriodDisplay.value);
+            // Collect user inputs from the display fields (which are linked to sliders)
+            // Add null checks before accessing .value
+            const loanAmount = parseFloat(loanAmountInput ? loanAmountInput.value : 0);
+            const monthlyBudget = parseFloat(monthlyBudgetInput ? monthlyBudgetInput.value : 0);
+            const loanInterestRate = parseFloat(loanInterestRateDisplay ? loanInterestRateDisplay.value : 0);
+            const loanTenure = parseFloat(loanTenureDisplay ? loanTenureDisplay.value : 0);
+            const investmentTenure = parseFloat(investmentTenureDisplay ? investmentTenureDisplay.value : 0);
+            const riskAppetite = parseFloat(riskAppetiteDisplay ? riskAppetiteDisplay.value : 0);
+            const optimizationPeriod = parseFloat(optimizationPeriodDisplay ? optimizationPeriodDisplay.value : 0);
 
             if (isNaN(loanAmount) || loanAmount <= 0 ||
                 isNaN(monthlyBudget) || monthlyBudget <= 0 ||
