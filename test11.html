@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pai - Smart Fund Allocation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind CSS configuration for custom colors, fonts, and extended properties
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                        albert_sans: ['"Albert Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#6EE7B7',
+                        background: '#F9FAFB',
+                        card: '#FFFFFF',
+                        textdark: '#1F2937',
+                        textlight: '#4B5563',
+                        danger: '#EF4444',
+                        success: '#22C55E',
+                        warning: '#F59E0B',
+                        input_box_fill: '#53db9e',
+                        input_text_color: 'rgba(27, 146, 114, 0.75)',
+                        seekbar_track_right: '#EDFOEF',
+                        seekbar_thumb: '#F5F5FA',
+                        // Chart specific colors (can be customized further)
+                        chart_loan_interest: 'rgba(239, 68, 68, 0.7)', // Red for loan interest
+                        chart_investment_gain: 'rgba(34, 197, 94, 0.7)', // Green for investment gain
+                        chart_remaining_loan: 'rgba(79, 70, 229, 0.7)', // Primary blue for remaining loan
+                        chart_emi_pie: '#4F46E5', // Primary for EMI slice
+                        chart_investment_pie: '#22C55E', // Success green for Investment slice
+                        chart_remaining_budget_pie: '#9CA3AF', // Gray for remaining budget slice
+                    },
+                    boxShadow: {
+                        'custom-input': '0px 0px 4px rgba(0, 0, 0, 0.04)',
+                        'default': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts - Inter & Albert Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+        /* Custom scrollbar styles */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #edfoef; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; cursor: pointer; }
+
+        /* Hide spinner arrows for input type="number" */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+
+        /* Ensure input focus is visually distinct */
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+            border-color: #4F46E5;
+        }
+
+        /* Custom slider track and thumb styles */
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            height: 2px; background: #edfoef;
+            outline: none; border-radius: 5px;
+            transition: opacity .2s;
+            position: relative; display: block;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%; height: 2px;
+            background: linear-gradient(to right, var(--tw-colors-input_text_color) var(--range-progress, 0%), var(--tw-colors-seekbar_track_right) var(--range-progress, 0%));
+            border-radius: 5px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 14px; height: 14px;
+            background: #f5f5fa; border-radius: 50%;
+            cursor: grab; box-shadow: none;
+            margin-top: -6px;
+        }
+        input[type="range"]::-moz-range-track {
+            width: 100%; height: 2px;
+            background: var(--tw-colors-seekbar_track_right); border-radius: 5px;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 14px; height: 14px;
+            background: var(--tw-colors-seekbar_thumb); border-radius: 50%;
+            cursor: grab; box-shadow: none;
+        }
+        input[type="range"]::-moz-range-progress {
+            background-color: var(--tw-colors-input_text_color); border-radius: 5px;
+        }
+        input[type="range"]:active::-webkit-slider-thumb { cursor: grabbing; }
+        input[type="range"]:active::-moz-range-thumb { cursor: grabbing; }
+
+        /* Styling for the alert box */
+        .alert-box {
+            padding: 1rem; border-radius: 0.5rem;
+            font-weight: 500; margin-top: 1.5rem;
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .alert-box.alert-success { background-color: #D1FAE5; color: #065F46; border: 1px solid #34D399; }
+        .alert-box.alert-warning { background-color: #FEF3C7; color: #92400E; border: 1px solid #FBBF24; }
+        .alert-box.alert-danger { background-color: #FEE2E2; color: #991B1B; border: 1px solid #F87171; }
+
+        /* Custom styling for the goal selection buttons */
+        .goal-button {
+            @apply flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer transition-all duration-200;
+            @apply text-white font-medium text-sm;
+            background-color: rgba(234, 234, 234, 0.2);
+            color: #1F2937;
+        }
+        .goal-button:hover { @apply opacity-90; }
+        .goal-button.selected {
+            background-color: #22C55E;
+            color: #FFFFFF;
+            box-shadow: 0 0 0 2px #22C55E, 0 0 0 4px rgba(34, 197, 94, 0.4);
+        }
+    </style>
+</head>
+<body class="font-inter bg-white text-textdark min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-card shadow-sm h-[68px] pl-[27px] pr-6 md:pr-8 flex items-center justify-between z-10">
+        <div class="flex items-center">
+            <!-- Placeholder Logo Image -->
+            <img src="https://placehold.co/27x23/8A2BE2/FFFFFF?text=P" alt="Pai Logo" class="w-[27px] h-[23px] rounded-lg">
+            <h1 class="text-xl font-extrabold text-textdark font-albert_sans ml-[22px]">Pai</h1>
+        </div>
+        <nav class="hidden md:block">
+            <ul class="flex space-x-6"></ul>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col space-y-8 overflow-hidden pt-[26px] relative">
+        <!-- Main Input/Calculation Section -->
+        <section class="px-[26px] flex flex-col overflow-y-auto">
+            <h2 class="text-[21px] font-normal text-textdark font-albert_sans mb-6">Smart Loan Calculator</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5 mt-1">
+                <!-- Loan Amount Input Group -->
+                <div class="mb-5">
+                    <div class="flex items-center justify-between w-[273px]">
+                        <label for="loanAmount" class="block text-sm font-normal text-textlight font-albert_sans">Loan Amount</label>
+                        <div class="w-[114px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">
+                            <input type="number" id="loanAmount" value="5000000" min="100000" max="50000000" step="100000"
+                                   class="w-full bg-transparent border-none focus:ring-0 text-input_text_color text-right p-0 m-0 font-albert_sans font-bold text-base">
+                        </div>
+                    </div>
+                    <input type="range" id="loanAmountSlider" value="5000000" min="100000" max="50000000" step="100000"
+                           class="w-[273px] mt-[18px]">
+                </div>
+
+                <!-- Monthly Budget Input Group -->
+                <div class="mb-5">
+                    <div class="flex items-center justify-between w-[273px]">
+                        <label for="monthlyBudget" class="block text-sm font-normal text-textlight font-albert_sans">Monthly Budget</label>
+                        <div class="w-[114px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">
+                            <input type="number" id="monthlyBudget" value="70000" min="10000" max="1000000" step="1000"
+                                   class="w-full bg-transparent border-none focus:ring-0 text-input_text_color text-right p-0 m-0 font-albert_sans font-bold text-base">
+                        </div>
+                    </div>
+                    <input type="range" id="monthlyBudgetSlider" value="70000" min="10000" max="1000000" step="1000"
+                           class="w-[273px] mt-[18px]">
+                </div>
+            </div>
+
+            <div class="relative mr-auto p-6 bg-[rgba(234,234,234,0.25)] shadow-lg rounded-lg w-full max-w-2xl mx-auto">
+                <!-- Allocation Goal Buttons -->
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <div class="flex flex-nowrap justify-center gap-5">
+                    <button type="button" id="btnNetZeroInterest" class="goal-button py-2 px-2 rounded-lg shadow-md transition-all duration-300 text-center text-sm font-[Albert_Sans] font-bold" data-goal="netZeroInterest">
+                        Achieve Net Zero<br>Interest
+                    </button>
+                    <button type="button" id="btnMinTimeNetZero" class="goal-button py-2 px-2 rounded-lg shadow-md transition-all duration-300 text-center text-sm font-[Albert_Sans] font-bold" data-goal="minTimeNetZero">
+                        Minimum Time to<br>Net Zero Interest
+                    </button>
+                    <button type="button" id="btnMaxGrowth" class="goal-button py-2 px-2 rounded-lg shadow-md transition-all duration-300 text-center text-sm font-[Albert_Sans] font-bold" data-goal="maximizeGrowth">
+                        Maximize Growth<br>in X Years
+                    </button>
+                  </div>
+                </div> 
+
+                <!-- Loan Parameters & Investment Parameters -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5 mb-1 mt-8">
+                    <!-- Loan Interest Rate -->
+                    <div class="mb-5">
+                        <div class="flex items-center justify-between w-[280px]">
+                            <label for="loanInterestRateDisplay" class="block text-sm font-normal text-textlight font-albert_sans">Loan: Interest Rate(p.a.)</label>
+                            <div class="w-[70px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">
+                                <input type="number" id="loanInterestRateDisplay" value="8" min="1" max="30" step="0.1"
+                                    class="w-full bg-transparent border-none focus:ring-0 text-input_text_color text-right p-0 m-0 font-albert_sans font-bold text-base">
+                                <span class="font-normal text-input_text_color pl-1">%</span>
+                            </div>
+                        </div>
+                        <input type="range" id="loanInterestRateSlider" value="8" min="1" max="30" step="0.1"
+                               class="w-[273px] mt-[18px]">
+                    </div>
+                    <!-- Loan Tenure -->
+                    <div class="mb-5">
+                        <div class="flex items-center justify-between w-[280px]">
+                            <label class="block text-sm font-normal text-textlight font-albert_sans">Loan Tenure</label>
+                            <div class="w-[70px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">
+                                <input type="number" id="loanTenureDisplay" value="30" min="1" max="30"
+                                    class="w-full bg-transparent border-none focus:ring-0 text-input_text_color text-right p-0 m-0 font-albert_sans font-bold text-base">
+                                <span class="font-normal text-input_text_color pl-1">Yr</span>
+                            </div>
+                        </div>
+                        <input type="range" id="loanTenureSlider" value="30" min="1" max="30"
+                               class="w-[273px] mt-[18px]">
+                    </div>
+                    <!-- Monthly EMI -->
+                    <div class="mb-5">
+                        <div class="flex items-center justify-between w-[280px]">
+                            <label class="block text-sm font-normal text-textlight mb-2">Monthly EMI</label>
+                            <p id="emiResult" class="w-[114px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">₹ 0</p>
+                        </div>
+                    </div>
+                    <!-- Risk Appetite -->
+                    <div class="mb-5">
+                        <div class="flex items-center justify-between w-[280px]">
+                            <label for="riskAppetite" class="block text-sm font-normal text-textlight font-albert_sans">Investment:Risk Appetite</label>
+                            <div class="w-[70px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">
+                                <input type="number" id="riskAppetite" value="9" min="1" max="30" step="0.1"
+                                    class="w-full bg-transparent border-none focus:ring-0 text-input_text_color text-right p-0 m-0 font-albert_sans font-bold text-base">
+                                <span class="font-normal text-input_text_color pl-1">%</span>
+                            </div>
+                        </div>
+                        <input type="range" id="riskAppetiteSlider" value="9" min="1" max="30" step="0.1"
+                               class="w-[273px] mt-[18px]">
+                    </div>
+                    <!-- Investment Tenure (dynamic, but fixed for some goals) -->
+                    <div id="investmentTenureContainer" class="mb-5">
+                        <div class="flex items-center justify-between w-[273px]">
+                            <label for="investmentTenure" class="block text-sm font-normal text-textlight font-albert_sans">Investment Tenure</label>
+                            <div class="w-[70px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">
+                                <input type="number" id="investmentTenure" value="30" min="1" max="30"
+                                    class="w-full bg-transparent border-none focus:ring-0 text-input_text_color text-right p-0 m-0 font-albert_sans font-bold text-base">
+                                <span class="font-normal text-input_text_color pl-1">Yr</span>
+                            </div>
+                        </div>
+                        <input type="range" id="investmentTenureSlider" value="30" min="1" max="30"
+                               class="w-[273px] mt-[18px]">
+                    </div>
+            
+                    <!-- Monthly Investment -->
+                    <div class="mb-5">
+                        <div class="flex items-center justify-between w-[280px]">
+                            <label class="block text-sm font-normal text-textlight mb-2">Monthly Investment</label>
+                            <p id="monthlyInvestmentResult" class="w-[114px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">₹ 0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Optimization Period (conditionally displayed for Maximize Growth) -->
+            <div id="optimizationPeriodContainer" class="mb-6 hidden">
+                <div class="flex items-center justify-between w-[273px]">
+                    <label for="optimizationPeriod" class="block text-sm font-normal text-textlight font-albert_sans">Optimization Period</label>
+                    <div class="w-[114px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">
+                        <input type="number" id="optimizationPeriod" value="10" min="1" max="30"
+                               class="w-full bg-transparent border-none focus:ring-0 text-input_text_color text-right p-0 m-0 font-albert_sans font-bold text-base">
+                        <span class="font-normal text-input_text_color pl-1">Yr</span>
+                    </div>
+                </div>
+                <input type="range" id="optimizationPeriodSlider" value="10" min="1" max="30"
+                       class="w-[310px] mt-[18px]">
+            </div>
+
+            <!-- Action Button (can be removed if auto-calc on input change is preferred, but kept for explicit trigger) -->
+            <div class="mt-auto pt-4 border-t border-gray-200 flex justify-center">
+                <button id="calculateBtn" class="bg-primary text-white py-3 px-6 rounded-lg font-medium text-lg shadow-md hover:bg-indigo-600 transition-colors duration-200">
+                    Calculate Allocation
+                </button>
+            </div>
+        </section>
+
+
+        <!-- Results & Guidance Section -->
+        <section class="px-[26px] py-6 flex flex-col overflow-y-auto">
+            <h2 class="text-xl md:text-2xl font-semibold mb-6 text-textdark">Results & Smart Allocation</h2>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="hidden flex flex-col items-center justify-center p-8">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
+                <p class="mt-4 text-lg text-primary">Calculating...</p>
+            </div>
+
+            <!-- Key Metrics Display -->
+            <div id="resultsDisplay" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div id="totalInterestContainer" class="bg-gray-50 rounded-lg p-4 shadow-sm">
+                    <h3 class="text-sm font-semibold text-textlight mb-2">Total Loan Interest Payable</h3>
+                    <p id="totalInterestResult" class="text-xl font-bold text-textdark">₹ 0</p>
+                </div>
+                <div id="investmentFVContainer" class="bg-gray-50 rounded-lg p-4 shadow-sm">
+                    <h3 class="text-sm font-semibold text-textlight mb-2">Estimated Investment Future Value</h3>
+                    <p id="investmentFutureValueResult" class="text-xl font-bold text-textdark">₹ 0</p>
+                </div>
+                <div id="minTimeContainer" class="bg-gray-50 rounded-lg p-4 shadow-sm hidden">
+                    <h3 class="text-sm font-semibold text-textlight mb-2">Minimum Time to Net Zero</h3>
+                    <p id="minTimeResult" class="text-xl font-bold text-textdark">-- Years</p>
+                </div>
+                <div id="netWealthContainer" class="bg-gray-50 rounded-lg p-4 shadow-sm hidden">
+                    <h3 class="text-sm font-semibold text-textlight mb-2">Net Wealth at Period End</h3>
+                    <p id="netWealthResult" class="text-xl font-bold text-textdark">₹ 0</p>
+                </div>
+            </div>
+
+            <!-- Smart Guidance Alert -->
+            <div id="guidanceAlert" class="alert-box alert-warning hidden">
+                <p id="alertMessage"></p>
+            </div>
+
+            <!-- Monthly Budget Allocation Pie Chart -->
+            <div class="flex-1 min-h-[250px] flex items-center justify-center relative mt-6 mb-8">
+                <canvas id="monthlyBudgetChart" class="w-full h-full"></canvas>
+                <div id="monthlyBudgetChartMessage" class="absolute bg-white bg-opacity-90 p-4 rounded-lg shadow-lg text-center text-textlight text-lg hidden">
+                    Monthly Budget Allocation will appear here.
+                </div>
+            </div>
+
+            <!-- Visual Comparison Chart (Bar/Line) -->
+            <div class="flex-1 min-h-[300px] flex items-center justify-center relative mt-6">
+                <canvas id="comparisonChart" class="w-full h-full"></canvas>
+                <div id="comparisonChartMessage" class="absolute bg-white bg-opacity-90 p-4 rounded-lg shadow-lg text-center text-textlight text-lg hidden">
+                    Select an Allocation Goal and input your parameters to see projections here!
+                </div>
+            </div>
+
+            <!-- Detailed Insights -->
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold text-textdark mb-3">Detailed Insights:</h3>
+                <div id="detailedInsights" class="bg-gray-50 rounded-lg p-4 text-textlight leading-relaxed">
+                    <p>Select an allocation goal and input your parameters to receive tailored financial guidance.</p>
+                </div>
+                <!-- Button for LLM-powered insights -->
+                <button id="getInsightsBtn" class="mt-4 bg-primary text-white py-2 px-4 rounded-lg font-medium shadow-md hover:bg-indigo-600 transition-colors duration-200 flex items-center space-x-2">
+                    ✨ Get Personalized Insights
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-textdark text-gray-300 py-4 px-8 text-center text-sm">
+        &copy; 2025 Pai Smart Fund Allocation Tool. All rights reserved.
+    </footer>
+<!—Link to your Javascript file—>
+        <script src=“script.js”></script>
+</body>
+</html>
+
