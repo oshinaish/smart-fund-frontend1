@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const loanTenure = parseFloat(loanTenureDisplay ? loanTenureDisplay.value : 0);
             const investmentTenure = parseFloat(investmentTenureDisplay ? investmentTenureDisplay.value : 0);
             const riskAppetite = parseFloat(riskAppetiteDisplay ? riskAppetiteDisplay.value : 0);
-            const optimizationPeriod = parseFloat(optimizationPeriodDisplay ? optimizationPeriodDisplay.value : 0);
+            const optimizationPeriodDisplay = parseFloat(optimizationPeriodDisplay ? optimizationPeriodDisplay.value : 0);
 
             if (isNaN(loanAmount) || loanAmount <= 0 ||
                 isNaN(monthlyBudget) || monthlyBudget <= 0 ||
