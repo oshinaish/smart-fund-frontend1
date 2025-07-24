@@ -181,13 +181,13 @@
                 <!-- Allocation Goal Buttons -->
                 <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                   <div class="flex flex-nowrap justify-center gap-5">
-                    <button type="button" id="btnNetZeroInterest" class="goal-button py-2 px-2 rounded-lg shadow-md transition-all duration-300 text-center text-sm font-[Albert_Sans] font-bold" data-goal="netZeroInterest">
+                    <button type="button" id="btnNetZeroInterest" class="goal-button py-2 px-2 rounded-lg shadow-md transition-all duration-300 text-center text-sm font-[Albert_Sans] font-bold" data-goal="net-zero-interest">
                         Achieve Net Zero<br>Interest
                     </button>
-                    <button type="button" id="btnMinTimeNetZero" class="goal-button py-2 px-2 rounded-lg shadow-md transition-all duration-300 text-center text-sm font-[Albert_Sans] font-bold" data-goal="minimumTime">
+                    <button type="button" id="btnMinTimeNetZero" class="goal-button py-2 px-2 rounded-lg shadow-md transition-all duration-300 text-center text-sm font-[Albert_Sans] font-bold" data-goal="min-time-net-zero">
                         Minimum Time to<br>Net Zero Interest
                     </button>
-                    <button type="button" id="btnMaxGrowth" class="goal-button py-2 px-2 rounded-lg shadow-md transition-all duration-300 text-center text-sm font-[Albert_Sans] font-bold" data-goal="maximizeGrowth">
+                    <button type="button" id="btnMaxGrowth" class="goal-button py-2 px-2 rounded-lg shadow-md transition-all duration-300 text-center text-sm font-[Albert_Sans] font-bold" data-goal="max-growth">
                         Maximize Growth<br>in X Years
                     </button>
                   </div>
@@ -228,20 +228,18 @@
                             <p id="emiResult" class="w-[114px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">₹ 0</p>
                         </div>
                     </div>
-                    <!-- Risk Appetite (Changed to Select element) -->
+                    <!-- Risk Appetite (Changed back to numeric input) -->
                     <div class="mb-5">
                         <div class="flex items-center justify-between w-[280px]">
-                            <label for="riskAppetiteSelect" class="block text-sm font-normal text-textlight font-albert_sans">Investment:Risk Appetite</label>
-                            <div class="w-[114px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">
-                                <!-- Changed to select dropdown -->
-                                <select id="riskAppetiteSelect" class="w-full bg-transparent border-none focus:ring-0 text-input_text_color text-right p-0 m-0 font-albert_sans font-bold text-base">
-                                    <option value="Low">Low</option>
-                                    <option value="Moderate" selected>Moderate</option>
-                                    <option value="High">High</option>
-                                </select>
+                            <label for="riskAppetiteDisplay" class="block text-sm font-normal text-textlight font-albert_sans">Investment:Risk Appetite</label>
+                            <div class="w-[70px] h-[29px] p-2 rounded-[2px] text-base font-bold bg-input_box_fill bg-opacity-10 text-input_text_color text-right shadow-custom-input flex items-center justify-end font-albert_sans">
+                                <input type="number" id="riskAppetiteDisplay" value="10" min="1" max="30" step="0.1"
+                                    class="w-full bg-transparent border-none focus:ring-0 text-input_text_color text-right p-0 m-0 font-albert_sans font-bold text-base">
+                                <span class="font-normal text-input_text_color pl-1">%</span>
                             </div>
                         </div>
-                        <!-- Removed slider for risk appetite as it's now a select -->
+                        <input type="range" id="riskAppetiteSlider" value="10" min="1" max="30" step="0.1"
+                               class="w-[273px] mt-[18px]">
                     </div>
                     <!-- Investment Tenure (dynamic, but fixed for some goals) -->
                     <div id="investmentTenureContainer" class="mb-5">
@@ -358,7 +356,6 @@
     <footer class="bg-textdark text-gray-300 py-4 px-8 text-center text-sm">
         &copy; 2025 Pai Smart Fund Allocation Tool. All rights reserved.
     </footer>
-    <!-- Link to your Javascript file (corrected quotes) -->
     <script src="script.js"></script>
 </body>
 </html>
