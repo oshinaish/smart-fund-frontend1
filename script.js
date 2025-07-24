@@ -1,11 +1,11 @@
 // Define your backend API URL - Hardcoded as requested
-const BACKEND_API_URL = 'https://smart-fund-backend-api.onrender.com/calculate-allocation';
+const BASE_BACKEND_API_URL = 'https://smart-fund-backend-api.onrender.com/api'; // Base URL for all API endpoints
 
 // Global variables for DOM elements and Chart instances (initialized in DOMContentLoaded)
 // These variables are declared globally but will be assigned values inside DOMContentLoaded
 let loanAmountInput, loanAmountSlider, monthlyBudgetInput, monthlyBudgetSlider;
 let loanInterestRateDisplay, loanInterestRateSlider, loanTenureDisplay, loanTenureSlider;
-let riskAppetiteDisplay, riskAppetiteSlider, investmentTenureDisplay, investmentTenureSlider;
+let riskAppetiteDisplay, riskAppetiteSlider, investmentTenureDisplay, investmentTenureSlider; // Changed riskAppetiteSelect back to riskAppetiteDisplay
 let optimizationPeriodDisplay, optimizationPeriodSlider, optimizationPeriodContainer;
 let btnNetZeroInterest, btnMinTimeNetZero, btnMaxGrowth, goalButtons;
 let emiResult, monthlyInvestmentResult, totalInterestResult, investmentFutureValueResult;
@@ -15,7 +15,7 @@ let guidanceAlert, alertMessage, loadingIndicator, resultsDisplay;
 
 let monthlyBudgetChartInstance;
 let comparisonChartInstance;
-let currentAllocationGoal = 'netZeroInterest'; // Default goal
+let currentAllocationGoal = 'net-zero-interest'; // Default goal, matching backend path suffix
 
 // --- DOMContentLoaded ensures all HTML is loaded before script runs ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -30,8 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loanInterestRateSlider = document.getElementById('loanInterestRateSlider');
     loanTenureDisplay = document.getElementById('loanTenureDisplay');
     loanTenureSlider = document.getElementById('loanTenureSlider');
-    riskAppetiteDisplay = document.getElementById('riskAppetiteDisplay');
-    riskAppetiteSlider = document.getElementById('riskAppetiteSlider');
+    riskAppetiteDisplay = document.getElementById('riskAppetiteDisplay'); // Changed back to riskAppetiteDisplay
+    riskAppetiteSlider = document.getElementById('riskAppetiteSlider'); // Re-added slider for risk appetite
     investmentTenureDisplay = document.getElementById('investmentTenureDisplay');
     investmentTenureSlider = document.getElementById('investmentTenureSlider');
     optimizationPeriodDisplay = document.getElementById('optimizationPeriodDisplay');
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (monthlyBudgetSlider && monthlyBudgetInput) setupSliderInputBinding(monthlyBudgetSlider, monthlyBudgetInput);
     if (loanInterestRateSlider && loanInterestRateDisplay) setupSliderInputBinding(loanInterestRateSlider, loanInterestRateDisplay);
     if (loanTenureSlider && loanTenureDisplay) setupSliderInputBinding(loanTenureSlider, loanTenureDisplay);
-    if (riskAppetiteSlider && riskAppetiteDisplay) setupSliderInputBinding(riskAppetiteSlider, riskAppetiteDisplay);
+    if (riskAppetiteSlider && riskAppetiteDisplay) setupSliderInputBinding(riskAppetiteSlider, riskAppetiteDisplay); // Re-added
     if (investmentTenureSlider && investmentTenureDisplay) setupSliderInputBinding(investmentTenureSlider, investmentTenureDisplay);
     if (optimizationPeriodSlider && optimizationPeriodDisplay) setupSliderInputBinding(optimizationPeriodSlider, optimizationPeriodDisplay);
 
@@ -119,10 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btn) btn.classList.remove('selected');
             });
             button.classList.add('selected');
-            currentAllocationGoal = button.dataset.goal;
+            currentAllocationGoal = button.dataset.goal; // Get goal from data-goal attribute
 
             if (optimizationPeriodContainer) {
-                if (currentAllocationGoal === 'maximizeGrowth') {
+                if (currentAllocationGoal === 'max-growth') { // Use 'max-growth'
                     optimizationPeriodContainer.classList.remove('hidden');
                 } else {
                     optimizationPeriodContainer.classList.add('hidden');
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    if (btnNetZeroInterest) btnNetZeroInterest.classList.add('selected');
+    if (btnNetZeroInterest) btnNetZeroInterest.classList.add('selected'); // Set initial selected goal button
 
 
     // --- Main Calculation Trigger ---
@@ -158,18 +158,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const loanInterestRate = parseFloat(loanInterestRateDisplay ? loanInterestRateDisplay.value : 0);
             const loanTenure = parseFloat(loanTenureDisplay ? loanTenureDisplay.value : 0);
             const investmentTenure = parseFloat(investmentTenureDisplay ? investmentTenureDisplay.value : 0);
-            const riskAppetite = parseFloat(riskAppetiteDisplay ? riskAppetiteDisplay.value : 0);
-            const optimizationPeriodDisplay = parseFloat(optimizationPeriodDisplay ? optimizationPeriodDisplay.value : 0);
+            const riskAppetite = parseFloat(riskAppetiteDisplay ? riskAppetiteDisplay.value : 0); // Get numeric value directly
+            const optimizationPeriod = parseFloat(optimizationPeriodDisplay ? optimizationPeriodDisplay.value : 0);
 
+            // Validate numeric inputs only
             if (isNaN(loanAmount) || loanAmount <= 0 ||
                 isNaN(monthlyBudget) || monthlyBudget <= 0 ||
                 isNaN(loanInterestRate) || loanInterestRate <= 0 ||
                 isNaN(loanTenure) || loanTenure <= 0 ||
                 isNaN(investmentTenure) || investmentTenure <= 0 ||
-                isNaN(riskAppetite) || riskAppetite <= 0) {
-                displayMessage('Please enter valid positive numbers for all financial inputs.','danger');
+                isNaN(riskAppetite) || riskAppetite <= 0) { // Keep riskAppetite validation as numeric
+                displayMessage('Please enter valid positive numbers for all financial inputs.', 'danger');
                 return;
             }
+
+            const API_ENDPOINT = `${BASE_BACKEND_API_URL}/calculate-${currentAllocationGoal}`;
 
             const requestData = {
                 loan_amount: loanAmount,
@@ -177,11 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 loan_interest_rate: loanInterestRate,
                 loan_tenure_years: loanTenure,
                 investment_tenure_years: investmentTenure,
-                risk_appetite: riskAppetite,
-                allocation_goal: currentAllocationGoal
+                risk_appetite: riskAppetite, // Send as number
+                allocation_goal: currentAllocationGoal // Still send this for backend logic if needed
             };
 
-            if (currentAllocationGoal === 'maximizeGrowth') {
+            // Add optimization period if applicable
+            if (currentAllocationGoal === 'max-growth') { // Use 'max-growth'
                 requestData.optimization_period_years = optimizationPeriod;
             }
 
@@ -198,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (comparisonChartMessage) comparisonChartMessage.classList.add('hidden');
 
 
-                const response = await fetch(BACKEND_API_URL, {
+                const response = await fetch(API_ENDPOINT, { // Use the dynamically constructed API_ENDPOINT
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -216,20 +220,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 console.log("API Response:", result);
 
-                if (emiResult) emiResult.textContent = `₹${result.monthly_emi.toFixed(2)}`;
-                if (monthlyInvestmentResult) monthlyInvestmentResult.textContent = `₹${result.monthly_investment.toFixed(2)}`;
-                if (totalInterestResult) totalInterestResult.textContent = `₹${result.total_loan_interest_payable.toFixed(2)}`;
-                if (investmentFutureValueResult) investmentFutureValueResult.textContent = `₹${result.estimated_investment_future_value.toFixed(2)}`;
+                if (emiResult) emiResult.textContent = `₹${result.monthlyEMI.toFixed(2)}`; // Backend uses monthlyEMI
+                if (monthlyInvestmentResult) monthlyInvestmentResult.textContent = `₹${result.monthlyInvestment.toFixed(2)}`; // Backend uses monthlyInvestment
+                if (totalInterestResult) totalInterestResult.textContent = `₹${result.totalLoanInterestPayable.toFixed(2)}`; // Backend uses totalLoanInterestPayable
+                if (investmentFutureValueResult) investmentFutureValueResult.textContent = `₹${result.estimatedInvestmentFutureValue.toFixed(2)}`; // Backend uses estimatedInvestmentFutureValue
 
                 minTimeContainer.classList.add('hidden');
                 netWealthContainer.classList.add('hidden');
 
-                if (currentAllocationGoal === 'maximizeGrowth' && result.net_wealth_at_end !== null) {
+                if (currentAllocationGoal === 'max-growth' && result.netWealthAtPeriodEnd !== null) { // Use 'max-growth' and netWealthAtPeriodEnd
                     if (netWealthContainer) netWealthContainer.classList.remove('hidden');
-                    if (netWealthResult) netWealthResult.textContent = `₹${result.net_wealth_at_end.toFixed(2)}`;
-                } else if (currentAllocationGoal === 'minimumTime' && result.minimum_time_to_net_zero !== null) {
+                    if (netWealthResult) netWealthResult.textContent = `₹${result.netWealthAtPeriodEnd.toFixed(2)}`;
+                } else if (currentAllocationGoal === 'min-time-net-zero' && result.minTimeYears !== null) { // Use 'min-time-net-zero' and minTimeYears
                     if (minTimeContainer) minTimeContainer.classList.remove('hidden');
-                    if (minTimeResult) minTimeResult.textContent = `${result.minimum_time_to_net_zero} Years`;
+                    if (minTimeResult) minTimeResult.textContent = `${result.minTimeYears} Years`;
                 }
 
                 if (resultsDisplay) resultsDisplay.classList.remove('hidden');
@@ -239,10 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (monthlyBudgetChartMessage) monthlyBudgetChartMessage.classList.add('hidden');
                 if (comparisonChartMessage) comparisonChartMessage.classList.add('hidden');
 
-                displayMessage(result.guidance_message, result.status);
+                displayMessage(result.guidanceMessage, result.status); // Backend uses guidanceMessage
 
                 // Render charts - now fetching canvases inside the function
-                renderCharts(result, monthlyBudget, loanAmount, loanTenure, loanInterestRate);
+                // Pass the original numeric riskAppetite for getInvestmentRate
+                renderCharts(result, monthlyBudget, loanAmount, loanTenure, loanInterestRate, riskAppetite);
 
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -278,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Function to render all charts
-    function renderCharts(result, monthlyBudget, loanAmount, loanTenure, loanInterestRate) {
+    function renderCharts(result, monthlyBudget, loanAmount, loanTenure, loanInterestRate, riskAppetiteNumericForChart) {
         // Fetch canvas elements directly within renderCharts to ensure they are available
         const monthlyBudgetChartCanvas = document.getElementById('monthlyBudgetChart');
         const comparisonChartCanvas = document.getElementById('comparisonChart');
@@ -290,15 +295,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 1. Monthly Budget Pie Chart ---
         if (monthlyBudgetChartCanvas) {
             const budgetPieCtx = monthlyBudgetChartCanvas.getContext('2d');
-            let remainingBudget = monthlyBudget - result.monthly_emi - result.monthly_investment;
+            let remainingBudget = monthlyBudget - result.monthlyEMI - result.monthlyInvestment; // Use backend names
             if (remainingBudget < 0) remainingBudget = 0;
 
             const pieData = {
                 labels: ['Monthly EMI', 'Monthly Investment', 'Remaining Budget'],
                 datasets: [{
                     data: [
-                        result.monthly_emi,
-                        result.monthly_investment,
+                        result.monthlyEMI, // Use backend names
+                        result.monthlyInvestment, // Use backend names
                         remainingBudget
                     ],
                     backgroundColor: [
@@ -349,12 +354,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (comparisonChartCanvas) {
             const comparisonCtx = comparisonChartCanvas.getContext('2d');
 
-            if (currentAllocationGoal === 'netZeroInterest' || currentAllocationGoal === 'maximizeGrowth') {
+            if (currentAllocationGoal === 'net-zero-interest' || currentAllocationGoal === 'max-growth') { // Use backend names
                 const barData = {
                     labels: ['Total Loan Interest', 'Estimated Investment Gain'],
                     datasets: [{
                         label: 'Amount (₹)',
-                        data: [result.total_loan_interest_payable, result.estimated_investment_future_value],
+                        data: [result.totalLoanInterestPayable, result.estimatedInvestmentFutureValue], // Use backend names
                         backgroundColor: [
                             'rgba(239, 68, 68, 0.8)',
                             'rgba(34, 197, 94, 0.8)'
@@ -406,37 +411,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     },
                 });
-            } else if (currentAllocationGoal === 'minimumTime') {
+            } else if (currentAllocationGoal === 'min-time-net-zero') { // Use backend name
                 const years = Array.from({ length: loanTenure + 1 }, (_, i) => i);
-                const loanBalanceData = [loanAmount];
-                const investmentGrowthData = [0];
+                const loanBalanceData = [loanAmount]; // Starting balance
+                const investmentGrowthData = [0]; // Starting investment value
 
-                let currentLoanBalance = 0; // Initialize inside loop or from loanAmount
+                let currentLoanBalance = loanAmount;
                 let currentInvestmentValue = 0;
                 const monthlyLoanRate = (loanInterestRate / 100) / 12;
-                const monthlyInvestmentRate = (getInvestmentRate(riskAppetite) / 100) / 12;
-                const currentMonthlyEMI = result.monthly_emi;
-                const currentMonthlyInvestment = result.monthly_investment;
+                // Use the helper function to get the numeric rate from the numeric riskAppetite
+                const monthlyInvestmentRate = (getInvestmentRate(riskAppetiteNumericForChart) / 100) / 12;
+                const currentMonthlyEMI = result.monthlyEMI; // Use backend name
+                const currentMonthlyInvestment = result.monthlyInvestment; // Use backend name
 
-                // Re-calculate loan balance and investment growth year by year
-                currentLoanBalance = loanAmount; // Start with full loan amount
                 for (let i = 1; i <= loanTenure; i++) {
-                    // Loan balance calculation (simplified for illustrative purposes, a full amortization schedule is complex)
-                    // This calculates the remaining balance after 'i' years of payments
                     const paymentsMade = i * 12;
                     const remainingPayments = (loanTenure * 12) - paymentsMade;
 
                     if (remainingPayments > 0) {
-                        // Formula for remaining loan balance (Present Value of remaining payments)
                         currentLoanBalance = currentMonthlyEMI * (1 - Math.pow(1 + monthlyLoanRate, -remainingPayments)) / monthlyLoanRate;
                     } else {
-                        currentLoanBalance = 0; // Loan fully paid
+                        currentLoanBalance = 0;
                     }
-                    loanBalanceData.push(Math.max(0, currentLoanBalance)); // Ensure non-negative
+                    loanBalanceData.push(Math.max(0, currentLoanBalance));
 
-                    // Investment growth calculation (Future Value of an Annuity)
                     const totalInvestedMonths = i * 12;
-                    currentInvestmentValue = currentMonthlyInvestment * ((Math.pow(1 + monthlyInvestmentRate, totalInvestedMonths) - 1) / monthlyInvestmentRate) * (1 + monthlyInvestmentRate); // End-of-period annuity
+                    currentInvestmentValue = currentMonthlyInvestment * ((Math.pow(1 + monthlyInvestmentRate, totalInvestedMonths) - 1) / monthlyInvestmentRate) * (1 + monthlyInvestmentRate);
                     investmentGrowthData.push(currentInvestmentValue);
                 }
 
@@ -510,9 +510,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Helper function to get the expected annual return based on risk appetite percentage
-    function getInvestmentRate(riskAppetitePercentage) {
-        return riskAppetitePercentage;
+    // Helper function to get the expected annual return based on risk appetite numeric value
+    // This directly returns the numeric value as it's already a percentage
+    function getInvestmentRate(riskAppetiteNumeric) {
+        return riskAppetiteNumeric;
     }
 
     // Initial state: hide results and charts, show messages
@@ -535,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (monthlyBudgetSlider) monthlyBudgetSlider.dispatchEvent(new Event('input'));
     if (loanInterestRateSlider) loanInterestRateSlider.dispatchEvent(new Event('input'));
     if (loanTenureSlider) loanTenureSlider.dispatchEvent(new Event('input'));
-    if (riskAppetiteSlider) riskAppetiteSlider.dispatchEvent(new Event('input'));
+    if (riskAppetiteSlider) riskAppetiteSlider.dispatchEvent(new Event('input')); // Re-added dispatch
     if (investmentTenureSlider) investmentTenureSlider.dispatchEvent(new Event('input'));
     if (optimizationPeriodSlider) optimizationPeriodSlider.dispatchEvent(new Event('input'));
 });
